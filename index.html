@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,27 +7,180 @@
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root { --ink: #0e0e0e; --paper: #f5f0e8; --accent: #c84b2f; --muted: #9a9082; --rule: #d4cfc5; }
-    body { background: var(--paper); color: var(--ink); font-family: 'DM Mono', monospace; min-height: 100vh; overflow-x: hidden; }
-    body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 999; opacity: 0.4; }
-    header { border-bottom: 1px solid var(--rule); padding: 1.5rem 3rem; display: flex; justify-content: space-between; align-items: center; animation: fadeDown 0.6s ease both; }
+
+    :root {
+      --ink: #0e0e0e;
+      --paper: #f5f0e8;
+      --accent: #c84b2f;
+      --muted: #9a9082;
+      --rule: #d4cfc5;
+      --card-bg: #0e0e0e;
+      --card-fg: #f5f0e8;
+      --cursor-color: #c84b2f;
+      --chat-bg: #f5f0e8;
+      --chat-border: #d4cfc5;
+      --chat-user: #0e0e0e;
+      --chat-ai: #f0ebe0;
+    }
+
+    [data-theme="dark"] {
+      --ink: #f0ebe0;
+      --paper: #111009;
+      --accent: #e05c38;
+      --muted: #7a7268;
+      --rule: #2a2820;
+      --card-bg: #1e1c17;
+      --card-fg: #f0ebe0;
+      --chat-bg: #111009;
+      --chat-border: #2a2820;
+      --chat-user: #f0ebe0;
+      --chat-ai: #1e1c17;
+    }
+
+    /* Custom cursor */
+    * { cursor: none !important; }
+    #cursor {
+      width: 12px; height: 12px;
+      background: var(--accent);
+      border-radius: 50%;
+      position: fixed;
+      top: 0; left: 0;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: transform 0.1s ease, width 0.2s ease, height 0.2s ease, background 0.2s ease;
+      mix-blend-mode: multiply;
+    }
+    [data-theme="dark"] #cursor { mix-blend-mode: screen; }
+    #cursor.hovering { width: 36px; height: 36px; background: var(--accent); opacity: 0.4; }
+    #cursor-trail {
+      width: 32px; height: 32px;
+      border: 1px solid var(--accent);
+      border-radius: 50%;
+      position: fixed;
+      top: 0; left: 0;
+      pointer-events: none;
+      z-index: 9998;
+      transform: translate(-50%, -50%);
+      transition: transform 0.18s ease, opacity 0.2s ease;
+      opacity: 0.5;
+    }
+
+    html { font-size: 16px; scroll-behavior: smooth; }
+    body {
+      background: var(--paper);
+      color: var(--ink);
+      font-family: 'DM Mono', monospace;
+      min-height: 100vh;
+      overflow-x: hidden;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    /* Grain */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 998; opacity: 0.4;
+    }
+
+    /* HEADER */
+    header {
+      border-bottom: 1px solid var(--rule);
+      padding: 1.5rem 3rem;
+      display: flex; justify-content: space-between; align-items: center;
+      position: sticky; top: 0; z-index: 100;
+      background: var(--paper);
+      transition: background 0.3s ease, border-color 0.3s ease;
+    }
     .logo { font-family: 'Playfair Display', serif; font-size: 1.1rem; }
-    nav a { color: var(--muted); text-decoration: none; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; margin-left: 2rem; transition: color 0.2s; }
+    nav { display: flex; align-items: center; gap: 0; }
+    nav a {
+      color: var(--muted); text-decoration: none;
+      font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase;
+      margin-left: 2rem; transition: color 0.2s;
+    }
     nav a:hover { color: var(--ink); }
+
+    /* Theme toggle */
+    .theme-toggle {
+      margin-left: 2rem;
+      width: 44px; height: 24px;
+      background: var(--rule);
+      border-radius: 12px;
+      border: none;
+      position: relative;
+      transition: background 0.3s;
+      flex-shrink: 0;
+    }
+    .theme-toggle::after {
+      content: '';
+      width: 18px; height: 18px;
+      background: var(--ink);
+      border-radius: 50%;
+      position: absolute;
+      top: 3px; left: 3px;
+      transition: transform 0.3s ease, background 0.3s;
+    }
+    [data-theme="dark"] .theme-toggle::after { transform: translateX(20px); }
+    .toggle-icons { position: absolute; inset: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 5px; font-size: 10px; pointer-events: none; }
+
+    /* HERO */
     .hero { display: grid; grid-template-columns: 1fr 1fr; min-height: calc(100vh - 65px); }
-    .hero-left { padding: 6rem 3rem 4rem; display: flex; flex-direction: column; justify-content: center; border-right: 1px solid var(--rule); animation: fadeUp 0.7s 0.1s ease both; }
+    .hero-left {
+      padding: 6rem 3rem 4rem;
+      display: flex; flex-direction: column; justify-content: center;
+      border-right: 1px solid var(--rule);
+    }
     .eyebrow { font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 1.5rem; }
-    h1 { font-family: 'Playfair Display', serif; font-size: clamp(2.8rem, 4.5vw, 5rem); line-height: 1.05; font-weight: 700; margin-bottom: 2rem; }
+
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.8rem, 4.5vw, 5rem);
+      line-height: 1.05; font-weight: 700; margin-bottom: 2rem;
+    }
     h1 em { font-style: italic; color: var(--accent); }
+
+    /* Typewriter */
+    .typewriter-wrap { display: inline-block; }
+    .typewriter { border-right: 3px solid var(--accent); padding-right: 4px; animation: blink 0.8s step-end infinite; white-space: nowrap; overflow: hidden; }
+    @keyframes blink { 0%,100%{border-color:var(--accent)} 50%{border-color:transparent} }
+
     .hero-desc { font-size: 0.85rem; line-height: 1.9; color: var(--muted); max-width: 42ch; margin-bottom: 3rem; }
     .cta-row { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
-    .btn-primary { background: var(--ink); color: var(--paper); border: none; padding: 0.85rem 2rem; font-family: 'DM Mono', monospace; font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: background 0.2s, transform 0.15s; text-decoration: none; display: inline-block; }
+    .btn-primary {
+      background: var(--ink); color: var(--paper);
+      border: none; padding: 0.85rem 2rem;
+      font-family: 'DM Mono', monospace; font-size: 0.75rem;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      transition: background 0.2s, transform 0.15s;
+      text-decoration: none; display: inline-block;
+    }
     .btn-primary:hover { background: var(--accent); transform: translateY(-2px); }
-    .btn-ghost { color: var(--ink); font-family: 'DM Mono', monospace; font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; border-bottom: 1px solid var(--rule); padding-bottom: 2px; transition: border-color 0.2s, color 0.2s; }
+    .btn-ghost {
+      color: var(--ink); font-family: 'DM Mono', monospace;
+      font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase;
+      text-decoration: none; border-bottom: 1px solid var(--rule);
+      padding-bottom: 2px; transition: border-color 0.2s, color 0.2s;
+    }
     .btn-ghost:hover { color: var(--accent); border-color: var(--accent); }
-    .hero-right { position: relative; overflow: hidden; animation: fadeUp 0.7s 0.2s ease both; }
-    .grid-bg { position: absolute; inset: 0; background-image: linear-gradient(var(--rule) 1px, transparent 1px), linear-gradient(90deg, var(--rule) 1px, transparent 1px); background-size: 40px 40px; opacity: 0.5; }
-    .floating-card { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--ink); color: var(--paper); padding: 2.5rem; width: min(340px, 80%); }
+
+    .hero-right { position: relative; overflow: hidden; }
+    .grid-bg {
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(var(--rule) 1px, transparent 1px),
+        linear-gradient(90deg, var(--rule) 1px, transparent 1px);
+      background-size: 40px 40px; opacity: 0.5;
+      transition: background-image 0.3s;
+    }
+    .floating-card {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--card-bg); color: var(--card-fg);
+      padding: 2.5rem; width: min(340px, 80%);
+      transition: background 0.3s, color 0.3s;
+    }
     .card-label { font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); margin-bottom: 1rem; }
     .card-name { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 700; line-height: 1.2; margin-bottom: 0.4rem; }
     .card-role { font-size: 0.75rem; color: var(--accent); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 1rem; }
@@ -35,31 +188,116 @@
     .tag-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1.5rem; }
     .tag { font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; border: 1px solid #333; padding: 0.3rem 0.7rem; color: #a09a92; }
     .hero-right::after { content: 'MUNICH, GERMANY'; position: absolute; bottom: 2rem; right: 2rem; font-size: 0.6rem; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; writing-mode: vertical-rl; }
-    section.about { border-top: 1px solid var(--rule); display: grid; grid-template-columns: 1fr 2fr; animation: fadeUp 0.7s 0.25s ease both; }
+
+    /* SCROLL REVEAL */
+    .reveal {
+      opacity: 0; transform: translateY(32px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+    .reveal-delay-4 { transition-delay: 0.4s; }
+
+    /* ABOUT */
+    section.about { border-top: 1px solid var(--rule); display: grid; grid-template-columns: 1fr 2fr; }
     .about-label { padding: 3rem; border-right: 1px solid var(--rule); }
     .section-tag { font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
     .about-content { padding: 3rem; }
     .about-content p { font-size: 0.85rem; line-height: 1.95; color: var(--muted); max-width: 65ch; }
     .about-content p + p { margin-top: 1.2rem; }
-    section.expertise { border-top: 1px solid var(--rule); display: grid; grid-template-columns: 1fr 2fr; animation: fadeUp 0.7s 0.3s ease both; }
+
+    /* EXPERTISE */
+    section.expertise { border-top: 1px solid var(--rule); display: grid; grid-template-columns: 1fr 2fr; }
     .expertise-label { padding: 3rem; border-right: 1px solid var(--rule); }
     .expertise-grid { padding: 3rem; display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; }
     .exp-item h4 { font-family: 'Playfair Display', serif; font-size: 1.1rem; margin-bottom: 0.6rem; }
     .exp-item p { font-size: 0.78rem; line-height: 1.8; color: var(--muted); }
     .exp-num { font-size: 0.65rem; letter-spacing: 0.15em; color: var(--accent); margin-bottom: 0.5rem; }
-    section.projects { border-top: 1px solid var(--rule); animation: fadeUp 0.7s 0.35s ease both; }
+
+    /* PROJECTS */
+    section.projects { border-top: 1px solid var(--rule); }
     .projects-header { display: grid; grid-template-columns: 1fr 2fr; border-bottom: 1px solid var(--rule); }
     .projects-header .ph-label { padding: 3rem; border-right: 1px solid var(--rule); }
     .projects-header p { padding: 3rem; font-size: 0.85rem; color: var(--muted); line-height: 1.8; max-width: 55ch; }
-    .project-item { display: grid; grid-template-columns: 60px 1fr auto; align-items: start; gap: 2rem; padding: 2rem 3rem; border-bottom: 1px solid var(--rule); transition: background 0.2s; }
+    .project-item {
+      display: grid; grid-template-columns: 60px 1fr auto;
+      align-items: start; gap: 2rem; padding: 2rem 3rem;
+      border-bottom: 1px solid var(--rule);
+      transition: background 0.2s;
+    }
     .project-item:last-child { border-bottom: none; }
-    .project-item:hover { background: rgba(0,0,0,0.02); }
+    .project-item:hover { background: rgba(200,75,47,0.04); }
     .project-num { font-size: 0.65rem; color: var(--accent); letter-spacing: 0.1em; padding-top: 4px; }
     .project-info h4 { font-family: 'Playfair Display', serif; font-size: 1.15rem; margin-bottom: 0.4rem; }
     .project-info p { font-size: 0.78rem; color: var(--muted); line-height: 1.7; max-width: 55ch; }
     .project-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; justify-content: flex-end; padding-top: 4px; }
-    .p-tag { font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; border: 1px solid var(--rule); padding: 0.25rem 0.6rem; color: var(--muted); white-space: nowrap; }
-    section.contact { border-top: 1px solid var(--rule); display: grid; grid-template-columns: 1fr 1fr; animation: fadeUp 0.7s 0.4s ease both; }
+    .p-tag { font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; border: 1px solid var(--rule); padding: 0.25rem 0.6rem; color: var(--muted); white-space: nowrap; transition: border-color 0.2s, color 0.2s; }
+    .project-item:hover .p-tag { border-color: var(--accent); color: var(--accent); }
+
+    /* AI CHAT SECTION */
+    section.ai-chat { border-top: 1px solid var(--rule); display: grid; grid-template-columns: 1fr 2fr; }
+    .chat-label { padding: 3rem; border-right: 1px solid var(--rule); }
+    .chat-label .section-tag { display: block; margin-bottom: 1rem; }
+    .chat-label p { font-size: 0.75rem; line-height: 1.8; color: var(--muted); max-width: 20ch; }
+    .chat-label .ai-badge {
+      display: inline-block; margin-top: 1rem;
+      font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase;
+      background: var(--accent); color: white;
+      padding: 0.3rem 0.7rem;
+    }
+    .chat-container { padding: 3rem; display: flex; flex-direction: column; gap: 1.5rem; }
+    .chat-status { font-size: 0.7rem; color: var(--muted); letter-spacing: 0.1em; display: flex; align-items: center; gap: 0.5rem; }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); flex-shrink: 0; transition: background 0.3s; }
+    .status-dot.loading { background: orange; animation: pulse 1s infinite; }
+    .status-dot.ready { background: #4caf50; }
+    .status-dot.error { background: var(--accent); }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    .chat-messages {
+      min-height: 260px; max-height: 360px; overflow-y: auto;
+      border: 1px solid var(--chat-border);
+      padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;
+      background: var(--chat-bg);
+      transition: background 0.3s, border-color 0.3s;
+    }
+    .chat-messages::-webkit-scrollbar { width: 4px; }
+    .chat-messages::-webkit-scrollbar-thumb { background: var(--rule); }
+    .msg { font-size: 0.78rem; line-height: 1.75; max-width: 85%; }
+    .msg.user { align-self: flex-end; background: var(--ink); color: var(--paper); padding: 0.75rem 1rem; }
+    .msg.ai { align-self: flex-start; background: var(--chat-ai); color: var(--ink); padding: 0.75rem 1rem; border-left: 2px solid var(--accent); }
+    .msg.system { align-self: center; color: var(--muted); font-size: 0.68rem; letter-spacing: 0.08em; max-width: 100%; text-align: center; }
+    .chat-input-row { display: flex; gap: 0.75rem; }
+    .chat-input {
+      flex: 1; padding: 0.85rem 1rem;
+      background: transparent; border: 1px solid var(--rule);
+      color: var(--ink); font-family: 'DM Mono', monospace;
+      font-size: 0.78rem; outline: none;
+      transition: border-color 0.2s, background 0.3s, color 0.3s;
+    }
+    .chat-input:focus { border-color: var(--accent); }
+    .chat-input::placeholder { color: var(--muted); }
+    .chat-send {
+      background: var(--ink); color: var(--paper);
+      border: none; padding: 0 1.5rem;
+      font-family: 'DM Mono', monospace; font-size: 0.75rem;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      transition: background 0.2s;
+    }
+    .chat-send:hover { background: var(--accent); }
+    .chat-send:disabled { opacity: 0.4; }
+    .suggested-questions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .sq-btn {
+      font-size: 0.65rem; letter-spacing: 0.08em;
+      border: 1px solid var(--rule); background: transparent;
+      color: var(--muted); padding: 0.4rem 0.8rem;
+      font-family: 'DM Mono', monospace;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .sq-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* CONTACT */
+    section.contact { border-top: 1px solid var(--rule); display: grid; grid-template-columns: 1fr 1fr; }
     .contact-left { padding: 4rem 3rem; border-right: 1px solid var(--rule); }
     .contact-left h2 { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 3vw, 3rem); line-height: 1.1; margin-bottom: 1.5rem; }
     .contact-left h2 em { font-style: italic; color: var(--accent); }
@@ -73,19 +311,21 @@
     .stat-row:last-child { border-bottom: none; padding-bottom: 0; }
     .stat-num { font-family: 'Playfair Display', serif; font-size: 2.5rem; color: var(--ink); line-height: 1; }
     .stat-label { font-size: 0.7rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 0.3rem; }
+
     footer { border-top: 1px solid var(--rule); padding: 2rem 3rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.7rem; color: var(--muted); letter-spacing: 0.08em; }
-    footer a { color: var(--muted); text-decoration: none; transition: color 0.2s; }
-    footer a:hover { color: var(--accent); }
-    @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes fadeDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Loading overlay for WebLLM */
+    .llm-progress { font-size: 0.7rem; color: var(--muted); margin-top: 0.5rem; height: 3px; background: var(--rule); position: relative; overflow: hidden; display: none; }
+    .llm-progress-bar { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s ease; }
+
     @media (max-width: 768px) {
       header { padding: 1.2rem 1.5rem; }
       .hero { grid-template-columns: 1fr; }
       .hero-left { padding: 3rem 1.5rem; border-right: none; border-bottom: 1px solid var(--rule); }
       .hero-right { min-height: 360px; }
-      section.about, section.expertise { grid-template-columns: 1fr; }
-      .about-label, .expertise-label { padding: 2rem 1.5rem; border-right: none; border-bottom: 1px solid var(--rule); }
-      .about-content, .expertise-grid { padding: 2rem 1.5rem; }
+      section.about, section.expertise, section.ai-chat { grid-template-columns: 1fr; }
+      .about-label, .expertise-label, .chat-label { padding: 2rem 1.5rem; border-right: none; border-bottom: 1px solid var(--rule); }
+      .about-content, .expertise-grid, .chat-container { padding: 2rem 1.5rem; }
       .expertise-grid { grid-template-columns: 1fr; gap: 2rem; }
       .projects-header { grid-template-columns: 1fr; }
       .projects-header .ph-label { border-right: none; border-bottom: 1px solid var(--rule); padding: 1.5rem; }
@@ -100,23 +340,39 @@
   </style>
 </head>
 <body>
+
+  <!-- Custom cursor -->
+  <div id="cursor"></div>
+  <div id="cursor-trail"></div>
+
   <header>
     <div class="logo">Budhaditya</div>
     <nav>
       <a href="#about">About</a>
       <a href="#projects">Projects</a>
+      <a href="#ai">Ask AI</a>
       <a href="#contact">Contact</a>
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+        <span class="toggle-icons"><span>☀</span><span>☽</span></span>
+      </button>
     </nav>
   </header>
+
   <main>
+
+    <!-- HERO -->
     <div class="hero">
       <div class="hero-left">
         <p class="eyebrow">AI Engineer &mdash; Munich, Germany</p>
-        <h1>Building<br/>intelligent<br/><em>systems</em><br/>for health.</h1>
+        <h1>
+          Building<br/>
+          <em class="typewriter-wrap"><span class="typewriter" id="typewriter"></span></em><br/>
+          for health.
+        </h1>
         <p class="hero-desc">I work at the intersection of deep learning and audio processing, developing models that make healthcare more accessible. Currently focused on inhalation technique analysis at a healthcare startup in Germany.</p>
         <div class="cta-row">
           <a href="#projects" class="btn-primary">View Projects</a>
-          <a href="#contact" class="btn-ghost">Get in Touch &rarr;</a>
+          <a href="#ai" class="btn-ghost">Ask the AI &rarr;</a>
         </div>
       </div>
       <div class="hero-right">
@@ -135,79 +391,91 @@
         </div>
       </div>
     </div>
-    <section class="about" id="about">
+
+    <!-- ABOUT -->
+    <section class="about reveal" id="about">
       <div class="about-label"><span class="section-tag">About</span></div>
       <div class="about-content">
         <p>I am an AI engineer based in Munich, Germany, specialising in deep learning for audio processing. My core work involves building and deploying models that analyse breathing sounds and inhaler usage to help patients learn proper inhalation technique through a mobile application.</p>
-        <p>Beyond my engineering work, I explore photography with a Nikon D750 and enjoy optimising for long-term health and performance. I hold a permanent residence in Germany and have a background in software development spanning audio, mobile, and web domains.</p>
+        <p>Beyond my engineering work, I explore photography with a Nikon D750 and enjoy optimising for long-term health and performance. I hold a permanent residence in Germany and have a background spanning audio, mobile, and web development.</p>
       </div>
     </section>
-    <section class="expertise" id="expertise">
+
+    <!-- EXPERTISE -->
+    <section class="expertise reveal" id="expertise">
       <div class="expertise-label"><span class="section-tag">Expertise</span></div>
       <div class="expertise-grid">
-        <div class="exp-item">
-          <p class="exp-num">01</p>
-          <h4>Audio Deep Learning</h4>
-          <p>Designing and training models for sound classification and event detection, with a focus on low-latency inference on mobile devices.</p>
-        </div>
-        <div class="exp-item">
-          <p class="exp-num">02</p>
-          <h4>Signal Processing</h4>
-          <p>Working with raw audio signals, spectrograms, and feature engineering pipelines for real-world noisy environments.</p>
-        </div>
-        <div class="exp-item">
-          <p class="exp-num">03</p>
-          <h4>Mobile AI Deployment</h4>
-          <p>Optimising and deploying models for on-device inference on iOS and Android using quantisation and model compression techniques.</p>
-        </div>
-        <div class="exp-item">
-          <p class="exp-num">04</p>
-          <h4>Research &amp; Patents</h4>
-          <p>Translating research ideas into patent applications, with work covering audio-based diagnostic methods for healthcare.</p>
-        </div>
+        <div class="exp-item reveal reveal-delay-1"><p class="exp-num">01</p><h4>Audio Deep Learning</h4><p>Designing and training models for sound classification and event detection, with a focus on low-latency inference on mobile devices.</p></div>
+        <div class="exp-item reveal reveal-delay-2"><p class="exp-num">02</p><h4>Signal Processing</h4><p>Working with raw audio signals, spectrograms, and feature engineering pipelines for real-world noisy environments.</p></div>
+        <div class="exp-item reveal reveal-delay-3"><p class="exp-num">03</p><h4>Mobile AI Deployment</h4><p>Optimising and deploying models for on-device inference on iOS and Android using quantisation and model compression techniques.</p></div>
+        <div class="exp-item reveal reveal-delay-4"><p class="exp-num">04</p><h4>Research &amp; Patents</h4><p>Translating research ideas into patent applications, with work covering audio-based diagnostic methods for healthcare.</p></div>
       </div>
     </section>
-    <section class="projects" id="projects">
+
+    <!-- PROJECTS -->
+    <section class="projects reveal" id="projects">
       <div class="projects-header">
         <div class="ph-label"><span class="section-tag">Projects</span></div>
         <p>A selection of technical work spanning healthcare AI, audio processing, and software development.</p>
       </div>
       <div class="project-list">
-        <div class="project-item">
+        <div class="project-item reveal reveal-delay-1">
           <span class="project-num">01</span>
-          <div class="project-info">
-            <h4>Inhalation Technique Analyser</h4>
-            <p>A deep learning model that detects inhalation, exhalation, and spray sounds in real time, deployed within a mobile app to coach patients on inhaler use.</p>
-          </div>
+          <div class="project-info"><h4>Inhalation Technique Analyser</h4><p>A deep learning model that detects inhalation, exhalation, and spray sounds in real time, deployed within a mobile app to coach patients on inhaler use.</p></div>
           <div class="project-tags"><span class="p-tag">PyTorch</span><span class="p-tag">Audio ML</span><span class="p-tag">Mobile</span><span class="p-tag">Healthcare</span></div>
         </div>
-        <div class="project-item">
+        <div class="project-item reveal reveal-delay-2">
           <span class="project-num">02</span>
-          <div class="project-info">
-            <h4>Audio Signal Patent</h4>
-            <p>Patent covering the use of audio signals to train a classification model for respiratory events, addressing core IP for the company's healthcare platform.</p>
-          </div>
+          <div class="project-info"><h4>Audio Signal Patent</h4><p>Patent covering the use of audio signals to train a classification model for respiratory events, addressing core IP for the company's healthcare platform.</p></div>
           <div class="project-tags"><span class="p-tag">Research</span><span class="p-tag">IP</span><span class="p-tag">Signal Processing</span></div>
         </div>
-        <div class="project-item">
+        <div class="project-item reveal reveal-delay-3">
           <span class="project-num">03</span>
-          <div class="project-info">
-            <h4>Audio Processing Web Tools</h4>
-            <p>JavaScript-based audio processing utilities using Float32Array for real-time waveform manipulation and audio feature extraction in the browser.</p>
-          </div>
+          <div class="project-info"><h4>Audio Processing Web Tools</h4><p>JavaScript-based audio processing utilities using Float32Array for real-time waveform manipulation and audio feature extraction in the browser.</p></div>
           <div class="project-tags"><span class="p-tag">JavaScript</span><span class="p-tag">Web Audio</span><span class="p-tag">Float32Array</span></div>
         </div>
-        <div class="project-item">
+        <div class="project-item reveal reveal-delay-4">
           <span class="project-num">04</span>
-          <div class="project-info">
-            <h4>Partnership Proposal System</h4>
-            <p>Technical documentation and collateral for a company partnership proposal, bridging engineering capabilities with business development requirements.</p>
-          </div>
+          <div class="project-info"><h4>Partnership Proposal System</h4><p>Technical documentation and collateral for a company partnership proposal, bridging engineering capabilities with business development requirements.</p></div>
           <div class="project-tags"><span class="p-tag">Strategy</span><span class="p-tag">Documentation</span></div>
         </div>
       </div>
     </section>
-    <section class="contact" id="contact">
+
+    <!-- AI CHAT -->
+    <section class="ai-chat reveal" id="ai">
+      <div class="chat-label">
+        <span class="section-tag">AI Assistant</span>
+        <p>Runs entirely in your browser. No server, no API key.</p>
+        <span class="ai-badge">Powered by WebLLM</span>
+      </div>
+      <div class="chat-container">
+        <div class="chat-status">
+          <div class="status-dot" id="statusDot"></div>
+          <span id="statusText">Click "Load AI" to initialise the in-browser model</span>
+        </div>
+        <div class="llm-progress" id="llmProgress">
+          <div class="llm-progress-bar" id="llmProgressBar"></div>
+        </div>
+        <button class="btn-primary" id="loadBtn" style="width:fit-content">Load AI (Phi-3 Mini)</button>
+        <div class="chat-messages" id="chatMessages">
+          <div class="msg system">The AI will answer questions about Budhaditya's work and background. Model runs 100% in your browser.</div>
+        </div>
+        <div class="suggested-questions">
+          <button class="sq-btn" data-q="What kind of AI models does Budhaditya build?">What models does he build?</button>
+          <button class="sq-btn" data-q="Tell me about the inhalation technique project">Inhalation project</button>
+          <button class="sq-btn" data-q="What tech stack does Budhaditya use?">Tech stack</button>
+          <button class="sq-btn" data-q="What is Budhaditya's background?">Background</button>
+        </div>
+        <div class="chat-input-row">
+          <input type="text" class="chat-input" id="chatInput" placeholder="Ask about my work..." disabled />
+          <button class="chat-send" id="chatSend" disabled>Send</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section class="contact reveal" id="contact">
       <div class="contact-left">
         <h2>Let's build<br/>something<br/><em>meaningful.</em></h2>
         <p>Open to collaborations in healthcare AI, audio machine learning, and research partnerships. Based in Munich, available globally.</p>
@@ -223,11 +491,184 @@
         <div class="stat-row"><div class="stat-num">DE</div><div class="stat-label">Based in Munich, Germany</div></div>
       </div>
     </section>
+
   </main>
+
   <footer>
     <span>&copy; 2025 Budhaditya</span>
     <span>AI Engineer &mdash; Healthcare &amp; Audio ML</span>
     <span>Munich, Germany</span>
   </footer>
+
+  <!-- WebLLM via CDN -->
+  <script type="module">
+    import * as webllm from "https://esm.run/@mlc-ai/web-llm";
+
+    // ---- CUSTOM CURSOR ----
+    const cursor = document.getElementById('cursor');
+    const trail = document.getElementById('cursor-trail');
+    let trailX = 0, trailY = 0, curX = 0, curY = 0;
+    document.addEventListener('mousemove', e => { curX = e.clientX; curY = e.clientY; cursor.style.transform = `translate(${curX}px, ${curY}px) translate(-50%,-50%)`; });
+    function animateTrail() {
+      trailX += (curX - trailX) * 0.12;
+      trailY += (curY - trailY) * 0.12;
+      trail.style.transform = `translate(${trailX}px, ${trailY}px) translate(-50%,-50%)`;
+      requestAnimationFrame(animateTrail);
+    }
+    animateTrail();
+    document.querySelectorAll('a, button, .project-item, .sq-btn').forEach(el => {
+      el.addEventListener('mouseenter', () => cursor.classList.add('hovering'));
+      el.addEventListener('mouseleave', () => cursor.classList.remove('hovering'));
+    });
+
+    // ---- DARK / LIGHT TOGGLE ----
+    const html = document.documentElement;
+    const themeToggle = document.getElementById('themeToggle');
+    const saved = localStorage.getItem('theme') || 'light';
+    html.setAttribute('data-theme', saved);
+    themeToggle.addEventListener('click', () => {
+      const next = html.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+    });
+
+    // ---- TYPEWRITER ----
+    const words = ['intelligent systems', 'audio models', 'mobile AI', 'healthcare tools'];
+    const tw = document.getElementById('typewriter');
+    let wi = 0, ci = 0, deleting = false;
+    function typeStep() {
+      const word = words[wi];
+      if (!deleting) {
+        tw.textContent = word.slice(0, ++ci);
+        if (ci === word.length) { deleting = true; setTimeout(typeStep, 1800); return; }
+      } else {
+        tw.textContent = word.slice(0, --ci);
+        if (ci === 0) { deleting = false; wi = (wi + 1) % words.length; setTimeout(typeStep, 400); return; }
+      }
+      setTimeout(typeStep, deleting ? 55 : 90);
+    }
+    typeStep();
+
+    // ---- SCROLL REVEAL ----
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); } });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    // ---- WEBLLM CHAT ----
+    const SYSTEM_PROMPT = `You are an AI assistant embedded in Budhaditya's personal portfolio website. Answer questions about Budhaditya concisely and helpfully.
+
+Here is Budhaditya's background:
+- AI Engineer at a healthcare app startup in Munich, Germany
+- Specialises in deep learning for audio processing
+- Core project: building a model to detect inhalation, exhalation, and spray sounds for a mobile app that trains patients on proper inhaler technique
+- Has filed a patent related to using audio signals for respiratory event classification
+- Uses PyTorch, works with spectrograms, feature engineering pipelines
+- Deploys models on-device for iOS and Android (quantisation, model compression)
+- Background in JavaScript (Float32Array, Web Audio API) and web development
+- Owns a Nikon D750, interested in photography
+- Practices intermittent fasting, takes Omega-3, Magnesium, Vitamin D3
+- Permanent resident in Germany, originally from India
+
+Keep answers short, friendly, and relevant. If asked something unrelated to Budhaditya, politely redirect.`;
+
+    let engine = null;
+    let modelReady = false;
+    const loadBtn = document.getElementById('loadBtn');
+    const chatInput = document.getElementById('chatInput');
+    const chatSend = document.getElementById('chatSend');
+    const chatMessages = document.getElementById('chatMessages');
+    const statusDot = document.getElementById('statusDot');
+    const statusText = document.getElementById('statusText');
+    const llmProgress = document.getElementById('llmProgress');
+    const llmProgressBar = document.getElementById('llmProgressBar');
+    let chatHistory = [];
+
+    function addMsg(role, text) {
+      const div = document.createElement('div');
+      div.className = `msg ${role}`;
+      div.textContent = text;
+      chatMessages.appendChild(div);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+      return div;
+    }
+
+    function setStatus(state, text) {
+      statusDot.className = `status-dot ${state}`;
+      statusText.textContent = text;
+    }
+
+    loadBtn.addEventListener('click', async () => {
+      loadBtn.disabled = true;
+      loadBtn.textContent = 'Loading...';
+      llmProgress.style.display = 'block';
+      setStatus('loading', 'Downloading model (first load ~500MB, cached after)...');
+
+      try {
+        engine = await webllm.CreateMLCEngine("Phi-3.5-mini-instruct-q4f16_1-MLC", {
+          initProgressCallback: (progress) => {
+            const pct = Math.round((progress.progress || 0) * 100);
+            llmProgressBar.style.width = pct + '%';
+            setStatus('loading', progress.text || `Loading model... ${pct}%`);
+          }
+        });
+        modelReady = true;
+        llmProgress.style.display = 'none';
+        loadBtn.style.display = 'none';
+        setStatus('ready', 'Model ready — running 100% in your browser');
+        chatInput.disabled = false;
+        chatSend.disabled = false;
+        chatInput.focus();
+        addMsg('ai', "Hi! I'm an AI assistant running entirely in your browser. Ask me anything about Budhaditya's work, projects, or background.");
+      } catch (err) {
+        setStatus('error', 'Failed to load model: ' + err.message);
+        loadBtn.disabled = false;
+        loadBtn.textContent = 'Retry Load';
+        llmProgress.style.display = 'none';
+      }
+    });
+
+    async function sendMessage(userText) {
+      if (!modelReady || !userText.trim()) return;
+      chatInput.value = '';
+      chatInput.disabled = true;
+      chatSend.disabled = true;
+      addMsg('user', userText);
+      chatHistory.push({ role: 'user', content: userText });
+      const aiDiv = addMsg('ai', '...');
+      setStatus('loading', 'Thinking...');
+
+      try {
+        const messages = [{ role: 'system', content: SYSTEM_PROMPT }, ...chatHistory];
+        let fullText = '';
+        const stream = await engine.chat.completions.create({ messages, stream: true, max_tokens: 300 });
+        for await (const chunk of stream) {
+          const delta = chunk.choices[0]?.delta?.content || '';
+          fullText += delta;
+          aiDiv.textContent = fullText;
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        chatHistory.push({ role: 'assistant', content: fullText });
+        setStatus('ready', 'Model ready — running 100% in your browser');
+      } catch (err) {
+        aiDiv.textContent = 'Error: ' + err.message;
+        setStatus('error', 'Something went wrong');
+      }
+      chatInput.disabled = false;
+      chatSend.disabled = false;
+      chatInput.focus();
+    }
+
+    chatSend.addEventListener('click', () => sendMessage(chatInput.value));
+    chatInput.addEventListener('keydown', e => { if (e.key === 'Enter') sendMessage(chatInput.value); });
+
+    document.querySelectorAll('.sq-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (!modelReady) { addMsg('system', 'Please load the AI model first.'); return; }
+        sendMessage(btn.dataset.q);
+      });
+    });
+  </script>
+
 </body>
 </html>
